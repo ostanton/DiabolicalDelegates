@@ -7,6 +7,8 @@ namespace dd
 {
     /**
      * Specialised delegate that holds class member functions along with their class context as an object
+     * @tparam C Class context
+     * @tparam Args Function arguments
      */
     template<typename C, typename... Args>
     struct MemberDelegate : Delegate<Args...>

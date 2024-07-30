@@ -5,6 +5,10 @@
 
 namespace dd
 {
+    /**
+     * Specialised wrapper for free-floating/global functions with no context
+     * @tparam Args Function arguments
+     */
     template<typename... Args>
     struct FunctorDelegate : Delegate<Args...>
     {
