@@ -46,4 +46,6 @@ A wrapper for a delegate of any kind. It can be bound and unbound, supports what
 
 Another version of `Event` which supports any number of `Delegate`s, not just one. These are `add`ed instead of `bind`ed.
 
-![Diabolical](billy-butcher-diabolical.gif)
+<p align="center">
+  <img src="billy-butcher-diabolical.gif">
+</p>
