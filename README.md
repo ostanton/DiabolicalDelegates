@@ -16,9 +16,10 @@ Either download/copy & paste the header code into your project's include directo
 
 ## How to use
 
-There are currently four classes:
+There are currently 5 classes:
 - Delegate
 - MemberDelegate
+- FunctorDelegate
 - Event
 - MultiEvent
 
@@ -32,6 +33,10 @@ A delegate is simply a wrapper for any kind of function, implemented in its deri
 ### MemberDelegate
 
 A subclass of `Delegate`, it implements member functions with their object context.
+
+### FunctorDelegate
+
+A subclass of `Delegate`, it implements free-floating/global functions via a simple function pointer.
 
 ### Event
 
