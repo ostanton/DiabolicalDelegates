@@ -2,6 +2,10 @@
 
 A diabolical approach to delegates and events in C++.
 
+## Dependencies
+
+None. Except C++17.
+
 ## How to build
 
 It's an interface library. You don't!
@@ -17,6 +21,9 @@ There are currently four classes:
 - MemberDelegate
 - Event
 - MultiEvent
+
+`Delegate`s and `Event`s have variadic template parameters, but no return values (may be supported in the future).
+These are what define the signatures of the functions that can be bound to them.
 
 ### Delegate
 
