@@ -4,5 +4,7 @@ project(DiabolicalDelegates LANGUAGES CXX)
 
 add_library(dd INTERFACE)
 
+add_subdirectory(include/DiabolicalDelegates)
+
 target_include_directories(dd INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(dd INTERFACE cxx_std_17)

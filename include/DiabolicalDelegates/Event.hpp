@@ -2,6 +2,7 @@
 #define DIADEL_EVENT_HPP
 
 #include "MemberDelegate.hpp"
+#include "FunctorDelegate.hpp"
 
 #include <memory>
 
@@ -53,6 +54,15 @@ namespace dd
         void bind(C* object, void(C::*function)(Args...))
         {
             m_delegate = std::make_unique<MemberDelegate<C, Args...>>(object, function);
+        }
+
+        /**
+         * Binds a function pointer to this event
+         * @param function Functor
+         */
+        void bind(void(*function)(Args...))
+        {
+            m_delegate = std::make_unique<FunctorDelegate<Args...>>(function);
         }
 
         /**

@@ -2,6 +2,7 @@
 #define DIALDEL_MULTIEVENT_HPP
 
 #include "MemberDelegate.hpp"
+#include "FunctorDelegate.hpp"
 
 #include <vector>
 #include <memory>
@@ -100,7 +101,7 @@ namespace dd
         ~MultiEvent() = default;
 
         /**
-         * Adds the specified function
+         * Adds the specified member function
          * @tparam C Object class
          * @param object Object context
          * @param function Class method
@@ -112,10 +113,20 @@ namespace dd
         }
 
         /**
-         * Adds the specified function if it does not already exist
+         * Adds the specified function
+         * @param function Functor
+         */
+        void add(void(*function)(Args...))
+        {
+            m_delegates.emplace_back(std::make_unique<FunctorDelegate<Args...>>(function));
+        }
+
+        /**
+         * Adds the specified member function if it does not already exist
          * @tparam C Object class
          * @param object Object context
          * @param function Class method
+         * @return Successful
          */
         template<typename C>
         bool addUnique(C* object, void(C::*function)(Args...))
@@ -129,7 +140,22 @@ namespace dd
         }
 
         /**
-         * Removes the specified function
+         * Adds the specified function if it does not already exist
+         * @param function Functor
+         * @return Successful
+         */
+        bool addUnique(void(*function)(Args...))
+        {
+            // fail to add if it already exists
+            if (auto it = getDelegateIterator(function); it != m_delegates.end())
+                return false;
+
+            add(function);
+            return true;
+        }
+
+        /**
+         * Removes the specified member function
          * @tparam C Object class
          * @param object Object context
          * @param function Class method
@@ -139,6 +165,22 @@ namespace dd
         bool remove(C* object, void(C::*function)(Args...))
         {
             if (auto it = getDelegateIterator(object, function); it != m_delegates.end())
+            {
+                m_delegates.erase(it);
+                return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * Removes the specified function
+         * @param function Functor
+         * @return Successful
+         */
+        bool remove(void(*function)(Args...))
+        {
+            if (auto it = getDelegateIterator(function); it != m_delegates.end())
             {
                 m_delegates.erase(it);
                 return true;
@@ -190,6 +232,16 @@ namespace dd
         typename std::vector<std::unique_ptr<Delegate<Args...>>>::iterator getDelegateIterator(C* object, void(C::*function)(Args...))
         {
             MemberDelegate<C, Args...> del {object, function};
+            return std::find_if(m_delegates.begin(), m_delegates.end(),
+                [&](auto& uniqueDelegate)
+                {
+                    return *uniqueDelegate == del;
+                });
+        }
+
+        typename std::vector<std::unique_ptr<Delegate<Args...>>>::iterator getDelegateIterator(void(*function)(Args...))
+        {
+            FunctorDelegate<Args...> del {function};
             return std::find_if(m_delegates.begin(), m_delegates.end(),
                 [&](auto& uniqueDelegate)
                 {
