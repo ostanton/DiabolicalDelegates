@@ -40,7 +40,7 @@ A subclass of `Delegate`, it implements free-floating/global functions via a sim
 
 ### Event
 
-A wrapper for a delegate of any kind. It can be bound and unbound, currently only supports `MemberDelegate`s.
+A wrapper for a delegate of any kind. It can be bound and unbound, supports whatever subclasses of `Delegate` there are.
 
 ### MultiEvent
 
