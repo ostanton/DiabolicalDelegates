@@ -8,10 +8,10 @@ namespace dd
     /**
      * Specialised delegate that holds class member functions along with their class context as an object
      * @tparam C Class context
-     * @tparam Args Function arguments
+     * @tparam ArgsT Function arguments
      */
-    template<typename C, typename... Args>
-    struct MemberDelegate : Delegate<Args...>
+    template<typename C, typename... ArgsT>
+    struct MemberDelegate : Delegate<ArgsT...>
     {
         MemberDelegate() = default;
         MemberDelegate(const MemberDelegate& other)
@@ -21,7 +21,7 @@ namespace dd
         {
             other.reset();
         }
-        MemberDelegate(C* object, void(C::*function)(Args...))
+        MemberDelegate(C* object, void(C::*function)(ArgsT...))
             : m_object(object), m_function(function) {}
 
         MemberDelegate& operator=(const MemberDelegate& other)
@@ -45,7 +45,7 @@ namespace dd
             return *this;
         }
 
-        MemberDelegate& operator=(void(C::*function)(Args...))
+        MemberDelegate& operator=(void(C::*function)(ArgsT...))
         {
             m_function = function;
             return *this;
@@ -65,28 +65,28 @@ namespace dd
 
         ~MemberDelegate() override = default;
 
-        std::unique_ptr<Delegate<Args...>> clone() const override
+        [[nodiscard]] std::unique_ptr<Delegate<ArgsT...>> clone() const override
         {
             return std::make_unique<MemberDelegate>(m_object, m_function);
         }
 
-        void reset() override
+        void reset() noexcept override
         {
             m_object = nullptr;
             m_function = nullptr;
         }
 
-        C* getObject() const {return m_object;}
+        [[nodiscard]] C* getObject() const noexcept {return m_object;}
 
     private:
-        void execute(Args... args) override
+        void execute(ArgsT&&... args) override
         {
             if (m_object && m_function)
-                (m_object->*m_function)(args...);
+                (m_object->*m_function)(std::forward<ArgsT>(args)...);
         }
 
         C* m_object {nullptr};
-        void(C::*m_function)(Args...) {nullptr};
+        void(C::*m_function)(ArgsT...) {nullptr};
     };
 }
 

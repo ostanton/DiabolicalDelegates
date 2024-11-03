@@ -12,24 +12,29 @@ namespace dd
 {
     /**
      * A wrapper for multiple delegates, of varying types, all callable via the broadcast() member function.
-     * @tparam Args Delegate arguments
+     * @tparam ArgsT Delegate arguments
      */
-    template<typename... Args>
+    template<typename... ArgsT>
     class MultiEvent final
     {
     public:
+        using DelegatePtr = std::unique_ptr<Delegate<ArgsT...>>;
+        using Container = std::vector<DelegatePtr>;
+        using Iterator = typename Container::iterator;
+        using ConstIterator = typename Container::const_iterator;
+        
         MultiEvent() = default;
 
         // Move conversion from single unique delegate
-        explicit MultiEvent(std::unique_ptr<Delegate<Args...>> del)
+        explicit MultiEvent(DelegatePtr del)
         {
             m_delegates.emplace_back(std::move(del));
         }
 
         // Move conversion from vector of delegates
-        explicit MultiEvent(std::vector<std::unique_ptr<Delegate<Args...>>>&& delegates)
+        explicit MultiEvent(Container&& delegates)
         {
-            m_delegates = std::move(delegates);
+            m_delegates = std::move(std::forward<Container>(delegates));
         }
 
         // Copy constructor
@@ -58,7 +63,7 @@ namespace dd
             return *this;
         }
 
-        MultiEvent& operator+(std::unique_ptr<Delegate<Args...>> del)
+        MultiEvent& operator+(DelegatePtr del)
         {
             m_delegates.emplace_back(std::move(del));
             return *this;
@@ -84,8 +89,10 @@ namespace dd
             return *this;
         }
 
-        MultiEvent& operator-(Delegate<Args...>* del)
+        MultiEvent& operator-(Delegate<ArgsT...>* del)
         {
+            if (!del) return *this;
+            
             if (auto it = std::find_if(m_delegates.begin(), m_delegates.end(),
                 [&](auto& uniqueDel)
                 {
@@ -107,18 +114,18 @@ namespace dd
          * @param function Class method
          */
         template<typename C>
-        void add(C* object, void(C::*function)(Args...))
+        void add(C* object, void(C::*function)(ArgsT...))
         {
-            m_delegates.emplace_back(std::make_unique<MemberDelegate<C, Args...>>(object, function));
+            m_delegates.emplace_back(std::make_unique<MemberDelegate<C, ArgsT...>>(object, function));
         }
 
         /**
          * Adds the specified function
          * @param function Functor
          */
-        void add(void(*function)(Args...))
+        void add(void(*function)(ArgsT...))
         {
-            m_delegates.emplace_back(std::make_unique<FunctorDelegate<Args...>>(function));
+            m_delegates.emplace_back(std::make_unique<FunctorDelegate<ArgsT...>>(function));
         }
 
         /**
@@ -129,7 +136,7 @@ namespace dd
          * @return Successful
          */
         template<typename C>
-        bool addUnique(C* object, void(C::*function)(Args...))
+        bool addUnique(C* object, void(C::*function)(ArgsT...))
         {
             // fail to add if it already exists
             if (auto it = getDelegateIterator(object, function); it != m_delegates.end())
@@ -144,7 +151,7 @@ namespace dd
          * @param function Functor
          * @return Successful
          */
-        bool addUnique(void(*function)(Args...))
+        bool addUnique(void(*function)(ArgsT...))
         {
             // fail to add if it already exists
             if (auto it = getDelegateIterator(function); it != m_delegates.end())
@@ -162,7 +169,7 @@ namespace dd
          * @return Successful
          */
         template<typename C>
-        bool remove(C* object, void(C::*function)(Args...))
+        bool remove(C* object, void(C::*function)(ArgsT...))
         {
             if (auto it = getDelegateIterator(object, function); it != m_delegates.end())
             {
@@ -178,7 +185,7 @@ namespace dd
          * @param function Functor
          * @return Successful
          */
-        bool remove(void(*function)(Args...))
+        bool remove(void(*function)(ArgsT...))
         {
             if (auto it = getDelegateIterator(function); it != m_delegates.end())
             {
@@ -193,13 +200,13 @@ namespace dd
          * Executes every delegate that this MultiEvent owns
          * @param args Function arguments
          */
-        void broadcast(Args... args)
+        void broadcast(ArgsT&&... args)
         {
             if (m_delegates.empty()) return;
 
             for (auto& del : m_delegates)
             {
-                (*del)(args...);
+                (*del)(std::forward<ArgsT>(args)...);
             }
         }
 
@@ -223,15 +230,15 @@ namespace dd
          * Moves another MultiEvent into this one
          * @param other The MultiEvent to move
          */
-        void move(MultiEvent&& other)
+        void move(MultiEvent&& other) noexcept
         {
             m_delegates = std::move(other.m_delegates);
         }
 
         template<typename C>
-        typename std::vector<std::unique_ptr<Delegate<Args...>>>::iterator getDelegateIterator(C* object, void(C::*function)(Args...))
+        ConstIterator getDelegateIterator(C* object, void(C::*function)(ArgsT...)) const
         {
-            MemberDelegate<C, Args...> del {object, function};
+            MemberDelegate<C, ArgsT...> del {object, function};
             return std::find_if(m_delegates.begin(), m_delegates.end(),
                 [&](auto& uniqueDelegate)
                 {
@@ -239,9 +246,9 @@ namespace dd
                 });
         }
 
-        typename std::vector<std::unique_ptr<Delegate<Args...>>>::iterator getDelegateIterator(void(*function)(Args...))
+        ConstIterator getDelegateIterator(void(*function)(ArgsT...)) const
         {
-            FunctorDelegate<Args...> del {function};
+            FunctorDelegate<ArgsT...> del {function};
             return std::find_if(m_delegates.begin(), m_delegates.end(),
                 [&](auto& uniqueDelegate)
                 {
@@ -249,7 +256,7 @@ namespace dd
                 });
         }
 
-        std::vector<std::unique_ptr<Delegate<Args...>>> m_delegates;
+        Container m_delegates;
     };
 }
 

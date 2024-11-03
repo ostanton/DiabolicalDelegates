@@ -7,9 +7,9 @@ namespace dd
 {
     /**
      * A wrapper for any kind of function, implemented via its derivatives.
-     * @tparam Args Function arguments
+     * @tparam ArgsT Function arguments
      */
-    template<typename... Args>
+    template<typename... ArgsT>
     struct Delegate
     {
         Delegate() = default;
@@ -19,21 +19,21 @@ namespace dd
         Delegate& operator=(Delegate&&) = default;
         virtual ~Delegate() = default;
 
-        void operator()(Args... args) {execute(args...);}
+        void operator()(ArgsT&&... args) {execute(std::forward<ArgsT>(args)...);}
 
         /**
          * Creates a clone of this delegate
          * @return Unique pointer to new delegate memory
          */
-        virtual std::unique_ptr<Delegate> clone() const = 0;
+        [[nodiscard]] virtual std::unique_ptr<Delegate> clone() const = 0;
 
         /**
          * Resets the state of this delegate
          */
-        virtual void reset() = 0;
+        virtual void reset() noexcept = 0;
 
     protected:
-        virtual void execute(Args...) = 0;
+        virtual void execute(ArgsT&&...) = 0;
     };
 }
 

@@ -7,10 +7,10 @@ namespace dd
 {
     /**
      * Specialised wrapper for free-floating/global functions with no context
-     * @tparam Args Function arguments
+     * @tparam ArgsT Function arguments
      */
-    template<typename... Args>
-    struct FunctorDelegate : Delegate<Args...>
+    template<typename... ArgsT>
+    struct FunctorDelegate : Delegate<ArgsT...>
     {
         FunctorDelegate() = default;
         FunctorDelegate(const FunctorDelegate& other)
@@ -20,7 +20,7 @@ namespace dd
         {
             other.reset();
         }
-        explicit FunctorDelegate(void(*function)(Args...))
+        explicit FunctorDelegate(void(*function)(ArgsT...))
             : m_function(function) {}
 
         FunctorDelegate& operator=(const FunctorDelegate& other)
@@ -42,7 +42,7 @@ namespace dd
             return *this;
         }
 
-        FunctorDelegate& operator=(void(*function)(Args...))
+        FunctorDelegate& operator=(void(*function)(ArgsT...))
         {
             m_function = function;
             return *this;
@@ -50,29 +50,29 @@ namespace dd
 
         bool operator==(const FunctorDelegate& other) {return m_function == other.m_function;}
         bool operator!=(const FunctorDelegate& other) {return !(*this == other);}
-        bool operator==(void(*function)(Args...)) {return m_function == function;}
-        bool operator!=(void(*function)(Args...)) {return !(*this == function);}
+        bool operator==(void(*function)(ArgsT...)) {return m_function == function;}
+        bool operator!=(void(*function)(ArgsT...)) {return !(*this == function);}
 
         ~FunctorDelegate() override = default;
         
-        std::unique_ptr<Delegate<Args...>> clone() const override
+        [[nodiscard]] std::unique_ptr<Delegate<ArgsT...>> clone() const override
         {
             return std::make_unique<FunctorDelegate>(m_function);
         }
 
-        void reset() override
+        void reset() noexcept override
         {
             m_function = nullptr;
         }
         
     private:
-        void execute(Args... args) override
+        void execute(ArgsT&&... args) override
         {
             if (m_function)
-                (*m_function)(args...);
+                (*m_function)(std::forward<ArgsT>(args)...);
         }
         
-        void(*m_function)(Args...) {nullptr};
+        void(*m_function)(ArgsT...) {nullptr};
     };
 }
 

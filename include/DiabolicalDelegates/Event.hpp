@@ -10,14 +10,16 @@ namespace dd
 {
     /**
      * A wrapper for a single delegate. Allows any subclass of Delegate to be bound.
-     * @tparam Args Delegate arguments
+     * @tparam ArgsT Delegate arguments
      */
-    template<typename... Args>
+    template<typename... ArgsT>
     class Event final
     {
     public:
+        using DelegatePtr = std::unique_ptr<Delegate<ArgsT...>>;
+        
         Event() = default;
-        explicit Event(std::unique_ptr<Delegate<Args...>> del)
+        explicit Event(DelegatePtr del)
             : m_delegate(std::move(del)) {}
         Event(const Event& other)
             : m_delegate(other.m_delegate->clone()) {}
@@ -36,7 +38,7 @@ namespace dd
             return *this;
         }
 
-        Event& operator=(std::unique_ptr<Delegate<Args...>> del)
+        Event& operator=(DelegatePtr del)
         {
             m_delegate = std::move(del);
             return *this;
@@ -51,18 +53,18 @@ namespace dd
          * @param function Class method
          */
         template<typename C>
-        void bind(C* object, void(C::*function)(Args...))
+        void bind(C* object, void(C::*function)(ArgsT...))
         {
-            m_delegate = std::make_unique<MemberDelegate<C, Args...>>(object, function);
+            m_delegate = std::make_unique<MemberDelegate<C, ArgsT...>>(object, function);
         }
 
         /**
          * Binds a function pointer to this event
          * @param function Functor
          */
-        void bind(void(*function)(Args...))
+        void bind(void(*function)(ArgsT...))
         {
-            m_delegate = std::make_unique<FunctorDelegate<Args...>>(function);
+            m_delegate = std::make_unique<FunctorDelegate<ArgsT...>>(function);
         }
 
         /**
@@ -74,15 +76,15 @@ namespace dd
          * Executes the bound function
          * @param args Function arguments
          */
-        void execute(Args... args)
+        void execute(ArgsT&&... args)
         {
             if (!m_delegate) return;
 
-            (*m_delegate)(execute(args...));
+            (*m_delegate)(execute(std::forward<ArgsT>(args)...));
         }
 
     private:
-        std::unique_ptr<Delegate<Args...>> m_delegate;
+        DelegatePtr m_delegate;
     };
 }
 
