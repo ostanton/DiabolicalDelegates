@@ -42,7 +42,7 @@ export namespace ostanton
          * @tparam RetT Return type
          * @tparam ArgsT Argument types
          */
-        template<typename C, typename RetT, typename... ArgsT>
+        template<typename C, typename RetT = void, typename... ArgsT>
         requires std::is_class_v<C>
         class CMemberDelegate final : public IDelegate<RetT, ArgsT...>
         {
@@ -90,7 +90,7 @@ export namespace ostanton
          * @tparam RetT Return type
          * @tparam ArgsT Argument types
          */
-        template<typename RetT, typename... ArgsT>
+        template<typename RetT = void, typename... ArgsT>
         class CFunctorDelegate final : public IDelegate<RetT, ArgsT...>
         {
         public:
@@ -133,7 +133,7 @@ export namespace ostanton
          * @tparam RetT Return type
          * @tparam ArgsT Argument types
          */
-        template<typename RetT, typename... ArgsT>
+        template<typename RetT = void, typename... ArgsT>
         class CEventWithReturn final
         {
         public:
@@ -191,7 +191,7 @@ export namespace ostanton
          * @tparam RetT Return type
          * @tparam ArgsT Argument types
          */
-        template<typename RetT, typename... ArgsT>
+        template<typename RetT = void, typename... ArgsT>
         class CMultiEventWithReturn final
         {
         public:
