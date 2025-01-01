@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 3.28.1)
+cmake_minimum_required(VERSION 3.23)
+project(diabolical_delegates)
 
-project(DiabolicalDelegates LANGUAGES CXX)
+add_library(diabolical_delegates)
 
-add_library(dd INTERFACE)
+target_sources(
+    diabolical_delegates
+    PUBLIC
+        FILE_SET CXX_MODULES
+        FILES
+            diabolical_delegates.cpp
+)
 
-add_subdirectory(include/DiabolicalDelegates)
-
-target_include_directories(dd INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_features(dd INTERFACE cxx_std_17)
+target_compile_features(diabolical_delegates PUBLIC cxx_std_23)
