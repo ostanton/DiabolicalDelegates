@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.23)
-project(diabolical_delegates)
+project(ostanton_dd)
 
-add_library(diabolical_delegates)
+add_library(ostanton_dd)
+add_library(ostanton::dd ALIAS ostanton_dd)
 
 target_sources(
-    diabolical_delegates
+    ostanton_dd
     PUBLIC
         FILE_SET CXX_MODULES
         FILES
             diabolical_delegates.cpp
 )
 
-target_compile_features(diabolical_delegates PUBLIC cxx_std_23)
+target_compile_features(ostanton_dd PUBLIC cxx_std_23)
