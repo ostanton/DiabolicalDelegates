@@ -206,13 +206,16 @@ export namespace ostanton
 
             CMultiEventWithReturn() = default;
             CMultiEventWithReturn(const CMultiEventWithReturn& other)
-            {}
-            CMultiEventWithReturn(CMultiEventWithReturn&&) = default;
+            {
+                copy(other);
+            }
+            CMultiEventWithReturn(CMultiEventWithReturn&&) noexcept = default;
             CMultiEventWithReturn& operator=(const CMultiEventWithReturn& other)
             {
+                copy(other);
                 return *this;
             }
-            CMultiEventWithReturn& operator=(CMultiEventWithReturn&&) = default;
+            CMultiEventWithReturn& operator=(CMultiEventWithReturn&&) noexcept = default;
             ~CMultiEventWithReturn() = default;
 
             /**
@@ -331,6 +334,17 @@ export namespace ostanton
             }
             
         private:
+            void copy(const CMultiEventWithReturn& other)
+            {
+                m_delegates.clear();
+                m_delegates.reserve(other.m_delegates.size());
+
+                for (const auto& del : other.m_delegates)
+                {
+                    m_delegates.emplace_back(del->clone());
+                }
+            }
+            
             template<typename C>
             ConstIterator getDelegateIterator(C* object, MemberFunctionType<C> function) const
             {
